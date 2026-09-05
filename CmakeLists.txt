@@ -14,19 +14,16 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(googletest)
 
-add_executable(shell 
+add_executable(shell
     src/Main.cpp
     src/Tokenize.cpp
-<<<<<<< HEAD
-=======
     src/Shell.cpp
->>>>>>> basicShell
 )
 
 include(CTest)
 enable_testing()
 
-add_executable(run_tests 
+add_executable(run_tests
     test/my_tests.cpp
     src/Tokenize.cpp
 )
