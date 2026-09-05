@@ -1,34 +1,39 @@
-#include <gtest/gtest.h>
 #include "../src/Tokenize.hpp"
+#include <gtest/gtest.h>
 
 TEST(TokeizerTest, TokenizeStrings) {
-    std::vector<std::string> v;
-    std::string s {"token1 token2"};
-    tokenize_on_spaces(s, v);
-    EXPECT_EQ(v.size(), 2);
+  std::string s{"token1 token2"};
+  char *const *v = tokenize_on_spaces(s);
+  EXPECT_STREQ(v[0], "token1");
+  EXPECT_STREQ(v[1], "token2");
+  delete[] v[0];
+  delete[] v[1];
+  delete[] v;
 }
 
 TEST(TokeizerTest, TokenizeNoStringsWhenInputEmpty) {
-    std::vector<std::string> v;
-    std::string s {""};
-    tokenize_on_spaces(s, v);
-    EXPECT_EQ(v.size(), 0);
+  std::string s{""};
+  char *const *v = tokenize_on_spaces(s);
+  EXPECT_EQ(v, nullptr);
 }
 
 TEST(TokeizerTest, TokenizeStringWithOneToken) {
-    std::vector<std::string> v;
-    std::string s {"token1"};
-    tokenize_on_spaces(s, v);
-    EXPECT_EQ(v.size(), 1);
-    std::string t {"token1 "};
-    v.clear();
-    tokenize_on_spaces(t, v);
-    EXPECT_EQ(v.size(), 1);
+  std::string s{"token1"};
+  char *const *v = tokenize_on_spaces(s);
+  EXPECT_STREQ(v[0], "token1");
+  std::string t{"token1 "};
+  delete[] v[0];
+  delete[] v;
+  v = tokenize_on_spaces(t);
+  EXPECT_STREQ(v[0], "token1");
 }
 
 TEST(TokeizerTest, TokenizeStringWithExtraSpaces) {
-    std::vector<std::string> v;
-    std::string s {"token1  token2  "};
-    tokenize_on_spaces(s, v);
-    EXPECT_EQ(v.size(), 2);
+  std::string s{"token1  token2  "};
+  char *const *v = tokenize_on_spaces(s);
+  EXPECT_STREQ(v[0], "token1");
+  EXPECT_STREQ(v[1], "token2");
+  delete[] v[0];
+  delete[] v[1];
+  delete[] v;
 }

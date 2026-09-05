@@ -17,6 +17,7 @@ FetchContent_MakeAvailable(googletest)
 add_executable(shell 
     src/Main.cpp
     src/Tokenize.cpp
+    src/Shell.cpp
 )
 
 include(CTest)
