@@ -1,11 +1,25 @@
-#include "./Tokenize.hpp"
+#include "Shell.hpp"
+#include <cstdio>
 #include <iostream>
 #include <string>
-#include <vector>
+#include <sys/wait.h>
+#include <unistd.h>
 
 int main() {
-  std::string input;
-  std::getline(std::cin, input, '\n');
-  std::vector<std::string> v;
-  tokenize_on_spaces(input, v);
+  constexpr char shellPrompt = '$';
+  Shell shell_;
+  while (true) {
+    std::cout << shellPrompt << " ";
+    std::string input;
+    std::getline(std::cin, input, '\n');
+    pid_t p_id = fork();
+    if (p_id == -1) {
+      std::cout << "Shell Error. Please Retry \n";
+    } else if (p_id == 0) {
+      shell_.execute(input);
+      _exit(1);
+    } else {
+      waitpid(p_id, nullptr, 0);
+    }
+  }
 }

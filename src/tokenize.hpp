@@ -1,4 +1,6 @@
+#include <cstddef>
 #include <string>
-#include <vector>
 
-void tokenize_on_spaces(std::string &input, std::vector<std::string> &v);
+char ** tokenize_on_spaces(std::string &input);
+
+std::size_t numberOfTokens(std::string &input); 
