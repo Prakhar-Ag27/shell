@@ -25,3 +25,10 @@ TEST(TokeizerTest, TokenizeStringWithOneToken) {
     tokenize_on_spaces(t, v);
     EXPECT_EQ(v.size(), 1);
 }
+
+TEST(TokeizerTest, TokenizeStringWithExtraSpaces) {
+    std::vector<std::string> v;
+    std::string s {"token1  token2  "};
+    tokenize_on_spaces(s, v);
+    EXPECT_EQ(v.size(), 2);
+}
