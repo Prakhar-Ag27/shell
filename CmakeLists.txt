@@ -14,12 +14,18 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(googletest)
 
-add_executable(shell src/Main.cpp)
+add_executable(shell 
+    src/Main.cpp
+    src/Tokenize.cpp
+)
 
 include(CTest)
 enable_testing()
 
-add_executable(run_tests test/my_tests.cpp)
+add_executable(run_tests 
+    test/my_tests.cpp
+    src/Tokenize.cpp
+)
 
 target_link_libraries(run_tests PRIVATE gtest_main)
 
