@@ -1,5 +1,7 @@
 #include "Shell.hpp"
 #include <cstdio>
+#include <cstdlib>
+#include <cstring>
 #include <iostream>
 #include <string>
 #include <sys/wait.h>
@@ -19,7 +21,12 @@ int main() {
       shell_.execute(input);
       _exit(1);
     } else {
-      waitpid(p_id, nullptr, 0);
+      int status;
+      waitpid(p_id, &status, 0);
+      int exitStatus = WEXITSTATUS(status);
+      if (WIFEXITED(status)) {
+        std::cout << "Failed to execute\n";
+      }
     }
   }
 }
