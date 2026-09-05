@@ -1,5 +1,5 @@
 #include <gtest/gtest.h>
-#include "../src/tokenize.hpp"
+#include "../src/Tokenize.hpp"
 
 TEST(TokeizerTest, TokenizeStrings) {
     std::vector<std::string> v;

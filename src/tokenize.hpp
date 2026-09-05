@@ -1,6 +1,7 @@
 #include <string>
 #include <vector>
 
+<<<<<<< HEAD
 void tokenize_on_spaces(std::string &input, std::vector<std::string> &v) {
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -42,3 +43,6 @@ void tokenize_on_spaces(std::string &input, std::vector<std::string> &v) {
   }
 }
 >>>>>>> b786a11 (Add tests and Cmake support with folder segregation)
+=======
+void tokenize_on_spaces(std::string &input, std::vector<std::string> &v);
+>>>>>>> 3940907 (fix odr)
