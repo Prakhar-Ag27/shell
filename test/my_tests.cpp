@@ -24,6 +24,7 @@ TEST(TokeizerTest, TokenizeStringWithOneToken) {
     v.clear();
     tokenize_on_spaces(t, v);
     EXPECT_EQ(v.size(), 1);
+
 }
 
 TEST(TokeizerTest, TokenizeStringWithExtraSpaces) {
