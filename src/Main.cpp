@@ -26,10 +26,6 @@ int main() {
     pid_t p_id = fork();
     if (p_id == -1) {
       std::cout << "Shell Error. Please Retry \n";
-      for (size_t i = 0; tokens[i] != nullptr; ++i) {
-        delete[] tokens[i];
-      }
-      delete[] tokens;
     } else if (p_id == 0) {
       shell_.execute(tokens);
       _exit(1);
@@ -44,5 +40,9 @@ int main() {
         }
       }
     }
+    for (size_t i = 0; tokens[i] != nullptr; ++i) {
+      delete[] tokens[i];
+    }
+    delete[] tokens;
   }
 }
