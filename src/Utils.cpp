@@ -13,6 +13,9 @@ std::string getCurrentWorkingDirectory() {
       size *= 2;
     } else if (dir != nullptr) {
       cwd = dir;
+    } else {
+      delete[] buf;
+      break;
     }
     delete[] buf;
   }
