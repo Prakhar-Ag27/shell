@@ -7,17 +7,27 @@
 #include <unistd.h>
 
 int main() {
-  constexpr char shellPrompt = '$';
+  char shellPrompt = '$';
   Shell shell_;
   while (true) {
     std::cout << getCurrentWorkingDirectory() << " " << shellPrompt << " ";
     std::string input;
     std::getline(std::cin, input, '\n');
+    char *const *tokens = tokenize_on_spaces(input);
+    Interceptor interceptor_;
+    if (tokens != nullptr && interceptor_.checkIfSupported(tokens[0])) {
+      interceptor_.intercept(tokens);
+      for (size_t i = 0; tokens[i] != nullptr; ++i) {
+        delete[] tokens[i];
+      }
+      delete[] tokens;
+      continue;
+    }
     pid_t p_id = fork();
     if (p_id == -1) {
       std::cout << "Shell Error. Please Retry \n";
     } else if (p_id == 0) {
-      shell_.execute(input);
+      shell_.execute(tokens);
       _exit(1);
     } else {
       int status;
@@ -30,5 +40,9 @@ int main() {
         }
       }
     }
+    for (size_t i = 0; tokens[i] != nullptr; ++i) {
+      delete[] tokens[i];
+    }
+    delete[] tokens;
   }
 }
