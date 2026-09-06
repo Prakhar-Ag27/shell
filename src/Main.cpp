@@ -19,7 +19,12 @@ int main() {
       shell_.execute(input);
       _exit(1);
     } else {
-      waitpid(p_id, nullptr, 0);
+      int status;
+      waitpid(p_id, &status, 0);
+      int exitStatus = WEXITSTATUS(status);
+      if (WIFEXITED(status) != 0) {
+        std::cout << "Process failed with code " << exitStatus << '\n';
+      }
     }
   }
 }
