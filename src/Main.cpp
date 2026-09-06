@@ -31,7 +31,7 @@ int main() {
       }
       delete[] tokens;
     } else if (p_id == 0) {
-      shell_.execute(tokenize_on_spaces(input));
+      shell_.execute(tokens);
       _exit(1);
     } else {
       int status;
