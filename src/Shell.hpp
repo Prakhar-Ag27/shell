@@ -1,8 +1,8 @@
 #include "./Tokenize.hpp"
-#include <string>
+#include "./Interceptor.hpp"
 
 class Shell {
     public:
         Shell();
-        void execute(std::string &input);
+        void execute(char * const *);
 };

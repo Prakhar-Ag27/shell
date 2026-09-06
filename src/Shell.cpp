@@ -5,8 +5,7 @@
 
 Shell::Shell() {};
 
-void Shell::execute(std::string &input) {
-  char *const *inputTokens = tokenize_on_spaces(input);
+void Shell::execute(char* const* inputTokens) {
   if (inputTokens == nullptr) {
     std::cout << "Please provide a program to run.\n";
     return;
