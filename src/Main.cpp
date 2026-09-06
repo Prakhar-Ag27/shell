@@ -1,4 +1,5 @@
 #include "Shell.hpp"
+#include "Utils.hpp"
 #include <cstdio>
 #include <iostream>
 #include <string>
@@ -9,7 +10,7 @@ int main() {
   constexpr char shellPrompt = '$';
   Shell shell_;
   while (true) {
-    std::cout << shellPrompt << " ";
+    std::cout << getCurrentWorkingDirectory() << " " << shellPrompt << " ";
     std::string input;
     std::getline(std::cin, input, '\n');
     pid_t p_id = fork();
@@ -21,9 +22,12 @@ int main() {
     } else {
       int status;
       waitpid(p_id, &status, 0);
-      int exitStatus = WEXITSTATUS(status);
-      if (WIFEXITED(status) != 0) {
-        std::cout << "Process failed with code " << exitStatus << '\n';
+      if (WIFEXITED(status)) {
+        int exitStatus = WEXITSTATUS(status);
+
+        if (exitStatus != 0) {
+          std::cout << "Process failed with code " << exitStatus << '\n';
+        }
       }
     }
   }
