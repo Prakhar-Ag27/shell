@@ -15,7 +15,7 @@ private:
   void waitOnAllProcesses();
 
   char shellPrompt_;
-  pid_t foregroundProcess_;
+  pid_t foregroundProcess_{-1};
   std::set<pid_t> backgroundProcess_;
   Interceptor interceptor_;
 };
