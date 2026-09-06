@@ -18,6 +18,7 @@ add_executable(shell
     src/Main.cpp
     src/Tokenize.cpp
     src/Shell.cpp
+    src/Utils.cpp
 )
 
 include(CTest)
