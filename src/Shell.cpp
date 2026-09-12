@@ -5,6 +5,7 @@
 #include <iostream>
 #include <sys/wait.h>
 #include <unistd.h>
+#include <vector>
 
 Shell::Shell(char prompt) : shellPrompt_(prompt), interceptor_{*this} {};
 
@@ -20,17 +21,15 @@ void Shell::run() {
       input = input.substr(0, input.size() - 2);
     }
 
-    char *const *tokens = tokenize_on_spaces(input);
-    if (tokens != nullptr && interceptor_.checkIfSupported(tokens[0])) {
+    std::vector<std::string> tokens = tokenize_on_spaces(input);
+    if (tokens.size() > 0 && interceptor_.checkIfSupported(tokens[0])) {
       interceptor_.intercept(tokens);
-      freeTokens(tokens);
       continue;
     }
 
     pid_t p_id = fork();
     if (p_id == -1) {
       std::cout << "Shell Error. Please Retry \n";
-      freeTokens(tokens);
       continue;
     }
     if (!isBgProcess) {
@@ -44,25 +43,16 @@ void Shell::run() {
     } else {
       waitOnAllProcesses();
     }
-    freeTokens(tokens);
     foregroundProcess_ = -1;
   }
 }
 
-void Shell::execute(char *const *inputTokens) {
-  if (inputTokens == nullptr) {
+void Shell::execute(const std::vector<std::string> &inputTokens) {
+  if (inputTokens.empty()) {
     std::cout << "Please provide a program to run.\n";
     return;
   }
-  execvp(inputTokens[0], inputTokens);
-  freeTokens(inputTokens);
-}
-
-void Shell::freeTokens(char *const *tokens) {
-  for (size_t i = 0; tokens[i] != nullptr; ++i) {
-    delete[] tokens[i];
-  }
-  delete[] tokens;
+  execvp(inputTokens[0].c_str(), getCStringVector(inputTokens));
 }
 
 bool Shell::checkIfBackgorundProcess(std::string input) {
@@ -128,11 +118,11 @@ void Shell::waitOnAllProcesses() {
 }
 
 void Shell::killAllBackgroundProcesses() {
-    for (pid_t pid : backgroundProcess_) {
-        kill(pid, SIGKILL);
-    }
-    for (pid_t pid : backgroundProcess_) {
-        waitpid(pid, nullptr, 0);
-    }
-    backgroundProcess_.clear();
+  for (pid_t pid : backgroundProcess_) {
+    kill(pid, SIGKILL);
+  }
+  for (pid_t pid : backgroundProcess_) {
+    waitpid(pid, nullptr, 0);
+  }
+  backgroundProcess_.clear();
 }

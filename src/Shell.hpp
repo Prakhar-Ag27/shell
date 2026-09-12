@@ -2,6 +2,7 @@
 #include "./Interceptor.hpp"
 #include "./Tokenize.hpp"
 #include <sys/types.h>
+#include <vector>
 
 class Shell {
 public:
@@ -11,13 +12,12 @@ public:
   void killAllBackgroundProcesses();
 
 private:
-  void execute(char *const *);
-  void freeTokens(char *const *);
+  void execute(const std::vector<std::string> &);
   bool checkIfBackgorundProcess(std::string);
   void waitOnAllProcesses();
 
   char shellPrompt_;
   pid_t foregroundProcess_{-1};
-    std::set<pid_t> backgroundProcess_;
+  std::set<pid_t> backgroundProcess_;
   Interceptor interceptor_;
 };
