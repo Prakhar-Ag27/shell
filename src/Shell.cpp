@@ -6,9 +6,7 @@
 #include <sys/wait.h>
 #include <unistd.h>
 
-Shell::Shell() {};
-
-Shell::Shell(char prompt) : shellPrompt_(prompt) {};
+Shell::Shell(char prompt) : shellPrompt_(prompt), interceptor_{*this} {};
 
 void Shell::run() {
   while (true) {
@@ -127,4 +125,14 @@ void Shell::waitOnAllProcesses() {
       break;
     }
   }
+}
+
+void Shell::killAllBackgroundProcesses() {
+    for (pid_t pid : backgroundProcess_) {
+        kill(pid, SIGKILL);
+    }
+    for (pid_t pid : backgroundProcess_) {
+        waitpid(pid, nullptr, 0);
+    }
+    backgroundProcess_.clear();
 }
