@@ -4,15 +4,15 @@
 #include <iostream>
 #include <unistd.h>
 
-Interceptor::Interceptor(Shell &aShell) : shell_{aShell} {};
+Interceptor::Interceptor(Shell &aShell) : shell_{aShell} {}
 
-bool Interceptor::intercept(char *const *inputTokens) {
-  if (strcmp(inputTokens[0], "cd") == 0) {
-    if (chdir(inputTokens[1]) != 0) {
+bool Interceptor::intercept(const std::vector<std::string> &inputTokens) {
+  if (inputTokens[0] == "cd") {
+    if (chdir(inputTokens[1].c_str()) != 0) {
       std::string err = strerror(errno);
       std::cout << "Cannot change the directory with error: " << err << "\n";
     }
-  } else if (strcmp(inputTokens[0], "exit") == 0) {
+  } else if (inputTokens[0] == "exit") {
     shell_.killAllBackgroundProcesses();
     exit(0);
   } else {
@@ -21,7 +21,7 @@ bool Interceptor::intercept(char *const *inputTokens) {
   return true;
 }
 
-bool Interceptor::checkIfSupported(char *const operation) {
+bool Interceptor::checkIfSupported(const std::string &operation) {
   if (supportedOps_.find(std::string{operation}) == supportedOps_.end()) {
     return false;
   }

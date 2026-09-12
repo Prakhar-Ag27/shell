@@ -1,5 +1,7 @@
 #include "Utils.hpp"
 #include <cerrno>
+#include <cstddef>
+#include <cstring>
 #include <unistd.h>
 
 std::string getCurrentWorkingDirectory() {
@@ -20,4 +22,16 @@ std::string getCurrentWorkingDirectory() {
     delete[] buf;
   }
   return cwd;
+}
+
+char **getCStringVector(const std::vector<std::string> &vec) {
+  char **cVec = new char *[vec.size() + 1];
+
+  for (std::size_t i = 0; i < vec.size(); i++) {
+    cVec[i] = new char[vec[i].size() + 1];
+    std::strcpy(cVec[i], vec[i].c_str());
+  }
+
+  cVec[vec.size()] = nullptr;
+  return cVec;
 }
