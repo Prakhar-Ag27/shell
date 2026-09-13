@@ -140,7 +140,7 @@ void Shell::installSigKillHandler() {
   struct sigaction sa{};
   sa.sa_handler = [](int signal) {};
   sigemptyset(&sa.sa_mask);
-  sa.sa_flags = 0;
+  sa.sa_flags = SA_RESTART;
 
   sigaction(SIGINT, &sa, nullptr);
 }
