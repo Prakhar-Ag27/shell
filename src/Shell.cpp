@@ -2,7 +2,6 @@
 #include "Parser.hpp"
 #include "Tokenize.hpp"
 #include "Utils.hpp"
-#include <algorithm>
 #include <csignal>
 #include <cstdlib>
 #include <iostream>
