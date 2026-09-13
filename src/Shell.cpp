@@ -1,12 +1,16 @@
 #include "Shell.hpp"
+#include "Parser.hpp"
 #include "Tokenize.hpp"
 #include "Utils.hpp"
+#include <algorithm>
 #include <csignal>
 #include <cstdlib>
 #include <iostream>
+#include <string>
 #include <sys/wait.h>
 #include <unistd.h>
 #include <vector>
+#include <cerrno>
 
 Shell::Shell(char prompt) : shellPrompt_(prompt), interceptor_{*this} {};
 
@@ -16,37 +20,20 @@ void Shell::run() {
     std::string input;
     std::getline(std::cin, input, '\n');
 
-    bool isBgProcess = checkIfBackgorundProcess(input);
+    std::vector<std::vector<std::string>> commands = parseInput(input);
 
-    if (isBgProcess) {
-      input = input.substr(0, input.size() - 2);
-    }
+    bool isMultiMode =
+        input.length() > 0 && (commands.size() > 1 || commands[0].size() > 1);
 
-    std::vector<std::string> tokens = tokenize_on_spaces(input);
-    if (tokens.size() > 0 && interceptor_.checkIfSupported(tokens[0])) {
-      interceptor_.intercept(tokens);
+    if (isMultiMode && !checkInput(commands)) {
+      std::cout << "Cannot use bg process while having multiple processes.\n";
       continue;
-    }
+    };
 
-    pid_t p_id = fork();
-    if (p_id == -1) {
-      std::cout << "Shell Error. Please Retry \n";
-      continue;
-    }
-    if (!isBgProcess) {
-      foregroundProcess_ = p_id;
+    if (isMultiMode) {
+      executeMultiMode(commands);
     } else {
-      if (bgProcessGroup == -1) {
-        bgProcessGroup = p_id;
-      }
-      setpgid(p_id, bgProcessGroup);
-      backgroundProcess_.insert(p_id);
-    }
-    if (p_id == 0) {
-      execute(tokens);
-      _exit(1);
-    } else {
-      waitOnAllProcesses();
+      executeSingleMode(input);
     }
   }
 }
@@ -97,9 +84,6 @@ void Shell::waitOnAllProcesses() {
         ++it;
       }
     }
-    if (backgroundProcess_.empty()) {
-      bgProcessGroup = -1;
-    }
 
     if (foregroundProcess_ == -1) {
       break;
@@ -126,8 +110,8 @@ void Shell::waitOnAllProcesses() {
 }
 
 void Shell::killAllBackgroundProcesses() {
-  for (pid_t pid : backgroundProcess_) {
-    kill(pid, SIGKILL);
+  if (bgProcessGroup > 1) {
+    kill(-bgProcessGroup, SIGKILL);
   }
   for (pid_t pid : backgroundProcess_) {
     waitpid(pid, nullptr, 0);
@@ -143,4 +127,100 @@ void Shell::installSigKillHandler() {
   sa.sa_flags = SA_RESTART;
 
   sigaction(SIGINT, &sa, nullptr);
+}
+
+bool Shell::checkInput(const std::vector<std::vector<std::string>> &input) {
+  bool isValid = true;
+  int count = 0;
+  std::for_each(input.begin(), input.end(),
+                [&](const std::vector<std::string> &commands) {
+                  for (auto &command : commands) {
+                    isValid = isValid && !checkIfBackgorundProcess(command);
+                    count++;
+                  }
+                });
+  return isValid && count > 0;
+}
+
+void Shell::executeSingleMode(std::string input) {
+  bool isBgProcess = checkIfBackgorundProcess(input);
+
+  if (isBgProcess) {
+    input = input.substr(0, input.size() - 2);
+  }
+
+  std::vector<std::string> tokens = tokenize_on_spaces(input);
+  if (tokens.size() > 0 && interceptor_.checkIfSupported(tokens[0])) {
+    interceptor_.intercept(tokens);
+    return;
+  }
+
+  pid_t p_id = fork();
+  if (p_id == -1) {
+    std::cout << "Shell Error. Please Retry \n";
+    return;
+  }
+  if (!isBgProcess) {
+    foregroundProcess_ = p_id;
+  } else {
+    bool groupIsStale =
+        bgProcessGroup > 1 && kill(-bgProcessGroup, 0) == -1 && errno == ESRCH;
+    if (bgProcessGroup == -1 || groupIsStale) {
+      bgProcessGroup = p_id;
+    }
+    setpgid(p_id, bgProcessGroup);
+    backgroundProcess_.insert(p_id);
+  }
+  if (p_id == 0) {
+    execute(tokens);
+    _exit(1);
+  } else {
+    waitOnAllProcesses();
+  }
+}
+
+void Shell::executeMultiMode(
+    const std::vector<std::vector<std::string>> &inputs) {
+  for (auto &commands : inputs) {
+    bool doBreak = false;
+    for (std::string command : commands) {
+      std::vector<std::string> tokens = tokenize_on_spaces(command);
+      if (tokens.size() > 0 && interceptor_.checkIfSupported(tokens[0])) {
+        interceptor_.intercept(tokens);
+        continue;
+      }
+      pid_t p_id = fork();
+      if (p_id == -1) {
+        std::cout << "Shell Error. Please Retry \n";
+        doBreak = true;
+        break;
+      }
+      if (p_id == 0) {
+        execute(tokens);
+        _exit(1);
+      } else {
+        foregroundProcessesInMultiMode_.insert(p_id);
+      }
+    }
+    for (auto &fp_id : foregroundProcessesInMultiMode_) {
+      int status;
+      pid_t result = waitpid(fp_id, &status, 0);
+      if (result == fp_id) {
+        if (WIFEXITED(status)) {
+          int exitStatus = WEXITSTATUS(status);
+
+          if (exitStatus != 0) {
+            std::cout << "Process failed with code " << exitStatus << '\n';
+          }
+        } else if (WIFSIGNALED(status)) {
+          std::cout << "Process terminated by signal " << WTERMSIG(status)
+                    << '\n';
+        }
+      }
+    }
+    foregroundProcessesInMultiMode_.clear();
+    if (doBreak) {
+      break;
+    }
+  }
 }

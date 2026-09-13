@@ -17,6 +17,7 @@ FetchContent_MakeAvailable(googletest)
 add_executable(shell
     src/Main.cpp
     src/Tokenize.cpp
+    src/Parser.cpp
     src/Shell.cpp
     src/Utils.cpp
     src/Interceptor.cpp
@@ -28,6 +29,7 @@ enable_testing()
 add_executable(run_tests
     test/my_tests.cpp
     src/Tokenize.cpp
+    src/Parser.cpp
 )
 
 target_link_libraries(run_tests PRIVATE gtest_main)
