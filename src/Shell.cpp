@@ -10,6 +10,7 @@
 #include <sys/wait.h>
 #include <unistd.h>
 #include <vector>
+#include <cerrno>
 
 Shell::Shell(char prompt) : shellPrompt_(prompt), interceptor_{*this} {};
 
@@ -28,7 +29,7 @@ void Shell::run() {
       std::cout << "Cannot use bg process while having multiple processes.\n";
       continue;
     };
-    
+
     if (isMultiMode) {
       executeMultiMode(commands);
     } else {
@@ -83,9 +84,6 @@ void Shell::waitOnAllProcesses() {
         ++it;
       }
     }
-    if (backgroundProcess_.empty()) {
-      bgProcessGroup = -1;
-    }
 
     if (foregroundProcess_ == -1) {
       break;
@@ -112,8 +110,8 @@ void Shell::waitOnAllProcesses() {
 }
 
 void Shell::killAllBackgroundProcesses() {
-  for (pid_t pid : backgroundProcess_) {
-    kill(pid, SIGKILL);
+  if (bgProcessGroup > 1) {
+    kill(-bgProcessGroup, SIGKILL);
   }
   for (pid_t pid : backgroundProcess_) {
     waitpid(pid, nullptr, 0);
@@ -165,7 +163,9 @@ void Shell::executeSingleMode(std::string input) {
   if (!isBgProcess) {
     foregroundProcess_ = p_id;
   } else {
-    if (bgProcessGroup == -1) {
+    bool groupIsStale =
+        bgProcessGroup > 1 && kill(-bgProcessGroup, 0) == -1 && errno == ESRCH;
+    if (bgProcessGroup == -1 || groupIsStale) {
       bgProcessGroup = p_id;
     }
     setpgid(p_id, bgProcessGroup);
