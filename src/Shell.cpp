@@ -1,6 +1,7 @@
 #include "Shell.hpp"
 #include "Tokenize.hpp"
 #include "Utils.hpp"
+#include <csignal>
 #include <cstdlib>
 #include <iostream>
 #include <sys/wait.h>
@@ -35,6 +36,10 @@ void Shell::run() {
     if (!isBgProcess) {
       foregroundProcess_ = p_id;
     } else {
+      if (bgProcessGroup == -1) {
+        bgProcessGroup = p_id;
+      }
+      setpgid(p_id, bgProcessGroup);
       backgroundProcess_.insert(p_id);
     }
     if (p_id == 0) {
@@ -43,7 +48,6 @@ void Shell::run() {
     } else {
       waitOnAllProcesses();
     }
-    foregroundProcess_ = -1;
   }
 }
 
@@ -93,6 +97,9 @@ void Shell::waitOnAllProcesses() {
         ++it;
       }
     }
+    if (backgroundProcess_.empty()) {
+      bgProcessGroup = -1;
+    }
 
     if (foregroundProcess_ == -1) {
       break;
@@ -112,6 +119,7 @@ void Shell::waitOnAllProcesses() {
         std::cout << "Process terminated by signal " << WTERMSIG(status)
                   << '\n';
       }
+      foregroundProcess_ = -1;
       break;
     }
   }
@@ -125,4 +133,14 @@ void Shell::killAllBackgroundProcesses() {
     waitpid(pid, nullptr, 0);
   }
   backgroundProcess_.clear();
+  bgProcessGroup = -1;
+}
+
+void Shell::installSigKillHandler() {
+  struct sigaction sa{};
+  sa.sa_handler = [](int signal) {};
+  sigemptyset(&sa.sa_mask);
+  sa.sa_flags = 0;
+
+  sigaction(SIGINT, &sa, nullptr);
 }

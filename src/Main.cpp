@@ -4,5 +4,6 @@
 
 int main() {
   Shell shell_{'$'};
+  shell_.installSigKillHandler();
   shell_.run();
 }

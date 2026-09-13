@@ -10,6 +10,7 @@ public:
   Shell(char);
   void run();
   void killAllBackgroundProcesses();
+  void installSigKillHandler();
 
 private:
   void execute(const std::vector<std::string> &);
@@ -20,4 +21,5 @@ private:
   pid_t foregroundProcess_{-1};
   std::set<pid_t> backgroundProcess_;
   Interceptor interceptor_;
+  pid_t bgProcessGroup{-1};
 };
